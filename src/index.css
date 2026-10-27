@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-amber-50: #fefce8;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
+}
+
+@layer base {
+ html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Отключаем уродливый браузерный скроллбар */
+    background-color: #060505;
+    color: var(--color-amber-50);
+  }
+}
+
+/* Деликатный пленочный шум (без резкости) */
+.film-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Арочные и овальные сказочные окна персонажей */
+.cameo-frame {
+  position: relative;
+  background: radial-gradient(circle at 50% 30%, rgba(245, 158, 11, 0.12), rgba(0, 0, 0, 0.95));
+  box-shadow: 
+    0 0 0 1px rgba(245, 158, 11, 0.25),
+    0 0 0 4px rgba(120, 53, 15, 0.2),
+    0 20px 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 30px rgba(245, 158, 11, 0.15);
+}
+
+/* Эффект винтажной виньетки */
+.page-vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.65) 100%);
+}
