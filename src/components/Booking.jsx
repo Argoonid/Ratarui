@@ -48,34 +48,50 @@ export default function Booking({ t, lang = 'ru' }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedTable) return;
-    setStatus('loading');
+  e.preventDefault();
+  if (!selectedTable) return;
+  setStatus('loading');
 
-    const pairingLabel = pairing === 'wine' ? 'Французский винный сет' : 'Halal Кордиалы';
+  const pairingLabel = pairing === 'wine' ? 'Французский винный сет' : 'Halal Кордиалы';
 
-    const payload = {
-      table: selectedTable,
-      guests,
-      totalPrice: guests * TICKET_PRICE,
-      pairing: pairingLabel,
-      audioVote,
-      contactMethod,
-      ...formData,
-      timestamp: new Date().toISOString()
-    };
+  const text = 
+    `🎬 <b>НОВАЯ БРОНЬ: КИНО-УЖИН «РАТАТУЙ»</b>\n` +
+    `━━━━━━━━━━━━━━━━━━━━\n` +
+    `🪑 <b>Стол:</b> #${selectedTable}\n` +
+    `👥 <b>Гости:</b> ${guests} персона(-ы)\n` +
+    `💵 <b>Депозит:</b> $${guests * TICKET_PRICE}\n` +
+    `🍷 <b>Пейринг:</b> ${pairingLabel}\n` +
+    `🗣 <b>Голос за дубляж:</b> ${audioVote ? audioVote.toUpperCase() : '—'}\n` +
+    `👤 <b>Гость:</b> ${formData.name}\n` +
+    `📞 <b>Связь:</b> ${formData.phone} (${contactMethod})\n` +
+    `🏨 <b>Отель:</b> ${formData.hotel || 'Не указан'}`;
 
-    try {
-      await fetch('/api/book', {
+  const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+  const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
+
+  try {
+    if (token && chatId) {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text,
+          parse_mode: 'HTML'
+        })
       });
-      setStatus('success');
-    } catch {
-      setTimeout(() => setStatus('success'), 600);
+
+      if (!res.ok) {
+        const errData = await res.json();
+        console.error('Ошибка Telegram API:', errData);
+      }
     }
-  };
+    setStatus('success');
+  } catch (err) {
+    console.error('Сбой отправки:', err);
+    setStatus('success'); // Билет всё равно выдаем гостю
+  }
+};
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col justify-center py-1">
