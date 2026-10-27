@@ -1,3 +1,5 @@
+const base = import.meta.env.BASE_URL;
+
 export const menuData = {
   syncCourses: [
     {
@@ -7,7 +9,7 @@ export const menuData = {
       weight: "45г",
       desc: "Воздушный бисквит в форме морской ракушки с тонким ароматом лимонной цедры и легкой корочкой, присыпанный сахарной пудрой.",
       pairing: "Pinot Noir (100 ml) или Гранатовый кордиал",
-      image: "/dish-1-madeleine.jpg"
+      image: `${base}dish-1-madeleine.jpg`
     },
     {
       id: 2,
@@ -16,7 +18,7 @@ export const menuData = {
       weight: "180г",
       desc: "Шелковистый крем-суп из лука-порея и молодого картофеля на птичьем бульоне со свежими 33% сливками. Подается в теплой чаше с крутонами.",
       pairing: "Вода на наш счет весь сеанс",
-      image: "/dish-2-soup.jpg"
+      image: `${base}dish-2-soup.jpg`
     },
     {
       id: 3,
@@ -25,7 +27,7 @@ export const menuData = {
       weight: "150г",
       desc: "Французский кремовый омлет с мелко рублеными цукини и кубиками томата, сервированный душистыми зелеными чипсами из базилика.",
       pairing: "Белое сухое крепкого лета / Травяной тоник",
-      image: "/dish-3-omelette.jpg"
+      image: `${base}dish-3-omelette.jpg`
     },
     {
       id: 4,
@@ -34,7 +36,7 @@ export const menuData = {
       weight: "170г",
       desc: "Медальоны телячьих пикаду, глазированные в соусе на основе белого вина, шалота, сливок и капли белого трюфельного масла.",
       pairing: "Зрелое сухое вино / Сангрит",
-      image: "/dish-4-sweetbreads.jpg"
+      image: `${base}dish-4-sweetbreads.jpg`
     },
     {
       id: 5,
@@ -43,7 +45,7 @@ export const menuData = {
       weight: "190г",
       desc: "Ювелирная спираль из слайсов цукини, баклажанов и томатов, запеченная на перечной подушке пиперада с прованскими травами.",
       pairing: "Ароматное сухое вино / Грейпфрутовый моктейль",
-      image: "/dish-5-ratatouille.jpg"
+      image: `${base}dish-5-ratatouille.jpg`
     },
     {
       id: 6,
@@ -52,7 +54,7 @@ export const menuData = {
       weight: "50мл",
       desc: "Плотный итальянский эспрессо с шелковистой пенкой крема, закрывающий вечер после финальных титров.",
       pairing: "Подача в винтажном фарфоре",
-      image: "/dish-6-espresso.jpg"
+      image: `${base}dish-6-espresso.jpg`
     }
   ],
   tableBase: [
@@ -62,7 +64,7 @@ export const menuData = {
       title: "Теплая закуска",
       weight: "110г",
       desc: "Шампиньоны, быстро обжаренные в сливочном масле с молодым чесноком и рубленой петрушкой.",
-      image: "/dish-7-mushrooms.jpg"
+      image: `${base}dish-7-mushrooms.jpg`
     },
     {
       id: "base-2",
@@ -70,7 +72,7 @@ export const menuData = {
       title: "Сырная тарелка",
       weight: "140г",
       desc: "Бри, выдержанный Грюйер и мягкий козий сыр со слайсами спелой груши, грецким орехом и светлым виноградом.",
-      image: "/dish-8-cheese.jpg"
+      image: `${base}dish-8-cheese.jpg`
     },
     {
       id: "base-3",
@@ -78,7 +80,7 @@ export const menuData = {
       title: "Багет",
       weight: "120г",
       desc: "Хрустящий парижский багет с пористым мякишем, золотистым маслом со специями и розмарином.",
-      image: "/dish-9-bread.jpg"
+      image: `${base}dish-9-bread.jpg`
     }
   ]
 };

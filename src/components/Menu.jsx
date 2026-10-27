@@ -26,7 +26,7 @@ export default function Menu({ t }) {
       {/* ДОВОЛЬНАЯ ГОЛОВА РЕМИ: ПОДНЯТА НА 90px ВВЕРХ, УВЕДЕНА В ФОН */}
       <div className="absolute -top-16 sm:-top-24 md:-top-28 left-1/2 -translate-x-1/2 w-48 sm:w-64 md:w-80 pointer-events-none opacity-35 z-0">
         <img 
-          src="/remi.png" 
+          src={`${import.meta.env.BASE_URL}remi.png`}
           alt="" 
           className="w-full h-auto object-contain mix-blend-screen filter drop-shadow-[0_0_30px_rgba(245,158,11,0.2)]"
           style={{

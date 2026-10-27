@@ -20,7 +20,7 @@ export default function Rules() {
           }}
         >
           <img 
-            src="/ego.png" 
+            src={`${import.meta.env.BASE_URL}ego.png`} 
             alt="Antoine Ego" 
             className="w-full h-auto object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.95)]"
           />

@@ -24,7 +24,7 @@ export default function Hero({ t }) {
           }}
         >
           <img 
-            src="/gusteau.png" 
+            src={`${import.meta.env.BASE_URL}gusteau.png`}
             alt="Auguste Gusteau" 
             className="w-full h-auto object-contain filter drop-shadow-[0_20px_45px_rgba(0,0,0,0.95)]"
           />
