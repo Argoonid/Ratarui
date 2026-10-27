@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Navigation, Compass, ExternalLink, Instagram, Facebook } from 'lucide-react';
+import { MapPin, Navigation, Compass, ExternalLink } from 'lucide-react';
 
 export default function LocationGuide() {
   const mapUrl = "https://share.google/3gyF8mOZPZUNM2ivQ";
@@ -61,38 +61,44 @@ export default function LocationGuide() {
           </span>
 
           <div className="flex items-center gap-2">
-            {/* Instagram */}
+            {/* Instagram (нативный вектор) */}
             <a
               href="https://www.instagram.com/sharminoevents/"
               target="_blank"
               rel="noopener noreferrer"
-              className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-300 hover:text-amber-300 text-[11px] font-sans transition-colors"
+              className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-300 hover:text-amber-300 text-[11px] font-sans transition-colors group"
             >
-              <Instagram className="w-3.5 h-3.5 text-pink-500" />
+              <svg className="w-3.5 h-3.5 stroke-pink-500 group-hover:stroke-amber-300 fill-none stroke-2 transition-colors" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+              </svg>
               <span>Instagram</span>
             </a>
 
-            {/* TikTok */}
+            {/* TikTok (нативный вектор) */}
             <a
               href="https://www.tiktok.com/@sharminoevents"
               target="_blank"
               rel="noopener noreferrer"
-              className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-300 hover:text-amber-300 text-[11px] font-sans transition-colors"
+              className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-300 hover:text-amber-300 text-[11px] font-sans transition-colors group"
             >
-              <svg className="w-3.5 h-3.5 fill-current text-cyan-400" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 fill-cyan-400 group-hover:fill-amber-300 transition-colors" viewBox="0 0 24 24">
                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49V11.2a8.27 8.27 0 0 0 4.88 1.6V9.35a4.83 4.83 0 0 1-.89-.04 4.85 4.85 0 0 1-.22-2.62z"/>
               </svg>
               <span>TikTok</span>
             </a>
 
-            {/* Facebook */}
+            {/* Facebook (нативный вектор) */}
             <a
               href="https://www.facebook.com/groups/1151879983982807"
               target="_blank"
               rel="noopener noreferrer"
-              className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-300 hover:text-amber-300 text-[11px] font-sans transition-colors"
+              className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-300 hover:text-amber-300 text-[11px] font-sans transition-colors group"
             >
-              <Facebook className="w-3.5 h-3.5 text-blue-500" />
+              <svg className="w-3.5 h-3.5 fill-blue-500 group-hover:fill-amber-300 transition-colors" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
               <span>Facebook</span>
             </a>
           </div>
