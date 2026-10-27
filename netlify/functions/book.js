@@ -1,10 +1,27 @@
-export default async (req) => {
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+export const handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' })
+    };
+  }
+
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!token || !chatId) {
+    console.error('Missing ENV variables in Netlify Function!');
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        error: 'Netlify ENV variables missing. Check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Site settings.' 
+      })
+    };
   }
 
   try {
-    const payload = await req.json();
+    const payload = JSON.parse(event.body || '{}');
     const { 
       table, 
       guests, 
@@ -16,16 +33,6 @@ export default async (req) => {
       contactMethod, 
       audioVote 
     } = payload;
-
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
-
-    if (!token || !chatId) {
-      return new Response(JSON.stringify({ error: 'Server env variables missing' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
 
     const text = 
       `🎬 <b>НОВАЯ БРОНЬ: КИНО-УЖИН «РАТАТУЙ»</b>\n` +
@@ -49,19 +56,28 @@ export default async (req) => {
       })
     });
 
+    const tgData = await tgRes.json();
+
     if (!tgRes.ok) {
-      const tgErr = await tgRes.text();
-      return new Response(JSON.stringify({ error: tgErr }), { status: 502 });
+      console.error('Telegram API rejected request:', tgData);
+      return {
+        statusCode: 502,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: tgData.description || 'Telegram API Error' })
+      };
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true })
+    };
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('Function execution crash:', err);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: err.message })
+    };
   }
 };
