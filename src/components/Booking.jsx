@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Wine, Sparkles } from 'lucide-react';
+import { X, Wine, Sparkles, Users } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import VIPTicket from './VIPTicket';
 
 const OCCUPIED_TABLES = [3, 7, 10, 14]; 
@@ -18,6 +19,7 @@ export default function Booking({ t, lang = 'ru' }) {
   const [formData, setFormData] = useState({ name: '', phone: '', hotel: '' });
   const [status, setStatus] = useState('idle');
 
+  const captureRef = useRef(null);
   const availableCount = TOTAL_TABLES - OCCUPIED_TABLES.length;
 
   const tables = Array.from({ length: TOTAL_TABLES }, (_, i) => ({
@@ -35,24 +37,28 @@ export default function Booking({ t, lang = 'ru' }) {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const generateGoogleCalendarUrl = () => {
-    const title = encodeURIComponent("Sharmino & ISTANBUL: Кино-ужин «Рататуй»");
-    const pairingName = pairing === 'wine' ? 'Французский винный сет' : 'Halal Кордиалы';
-    const details = encodeURIComponent(
-      `Синхронный гастрономический показ. Столик #${selectedTable}, ${guests} персон. ` +
-      `Пейринг: ${pairingName}. Трансфер заберет вас из ${formData.hotel || 'отеля'}.`
-    );
-    const location = encodeURIComponent("Restaurant ISTANBUL, Old Market, Sharm El Sheikh, Egypt");
-    const dates = "20261103T180000Z/20261103T210000Z";
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedTable) return;
     setStatus('loading');
 
     const pairingLabel = pairing === 'wine' ? 'Французский винный сет' : 'Halal Кордиалы';
+
+    // 1. Снимаем фото билета из скрытого контейнера
+    let photoBase64 = null;
+    try {
+      if (captureRef.current) {
+        photoBase64 = await toPng(captureRef.current, {
+          cacheBust: true,
+          pixelRatio: 2,
+          quality: 0.95,
+          width: 880,
+          height: 370
+        });
+      }
+    } catch (err) {
+      console.warn('Не удалось отрендерить изображение билета:', err);
+    }
 
     const payload = {
       table: selectedTable,
@@ -62,6 +68,7 @@ export default function Booking({ t, lang = 'ru' }) {
       audioVote,
       contactMethod,
       ...formData,
+      photoBase64,
       timestamp: new Date().toISOString()
     };
 
@@ -71,53 +78,73 @@ export default function Booking({ t, lang = 'ru' }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
       const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        console.error('Сервер вернул ошибку:', res.status, data);
-        alert(`Ошибка отправки (${res.status}): ${data.error || 'Проверьте логи'}`);
-      } else {
-        console.log('Успешная отправка в Telegram:', data);
-      }
-      
-      setStatus('success');
+      if (!res.ok) console.error('Ошибка сервера брони:', data);
     } catch (err) {
-      console.error('Сетевой сбой при отправке:', err);
+      console.error('Сбой отправки:', err);
+    } finally {
       setStatus('success');
     }
   };
-  
+
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col justify-center py-1">
+    <div className="w-full max-w-2xl mx-auto flex flex-col justify-center py-1 select-none">
+      
+      {/* СКРЫТЫЙ БУФЕР ДЛЯ РЕНДЕРА КАРТИНКИ В TELEGRAM */}
+      <div 
+        style={{ 
+          position: 'fixed', 
+          left: '-9999px', 
+          top: 0, 
+          width: '880px', 
+          height: '370px', 
+          overflow: 'hidden', 
+          pointerEvents: 'none',
+          zIndex: -50 
+        }}
+      >
+        <div ref={captureRef} style={{ width: '880px', height: '370px' }}>
+          <VIPTicket 
+            bookingData={{
+              table: selectedTable || 1,
+              name: formData.name || "Гость",
+              guests: guests,
+              pairing: pairing === 'wine' ? 'Винный сет (Франция)' : 'Halal Кордиалы'
+            }}
+            lang={lang}
+            isCaptureMode={true}
+          />
+        </div>
+      </div>
+
       {/* Шапка блока */}
       <div className="text-center mb-3">
         <span className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-sans font-bold">
-          Reservation
+          Лист ожидания сеанса
         </span>
         <h3 className="text-xl sm:text-2xl md:text-3xl text-amber-100 font-bold mt-0.5">
           {t?.bookTitle || "Бронь кинозала"}
         </h3>
         
-        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-amber-950/40 border border-amber-800/40 rounded-full text-[11px] font-sans text-amber-300 mt-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-          <span>Свободно: <strong>{availableCount} из {TOTAL_TABLES} столов</strong></span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-950/40 border border-amber-800/40 rounded-full text-[11px] font-sans text-amber-300 mt-1.5">
+          <Users className="w-3.5 h-3.5 text-amber-400" />
+          <span>Формирование группы: <strong>осталось {availableCount} из {TOTAL_TABLES} столов</strong></span>
         </div>
       </div>
 
-      {/* Интерактивная схема зала */}
+      {/* Схема зала */}
       <div 
         onClick={(e) => e.stopPropagation()}
         className="bg-[#0b0807] border border-amber-900/40 rounded-2xl p-4 sm:p-5 shadow-xl"
       >
         <div className="flex justify-between items-center mb-2.5 text-[10px] font-sans text-zinc-400">
-          <span className="uppercase tracking-wider text-amber-500 font-bold">План зала</span>
+          <span className="uppercase tracking-wider text-amber-500 font-bold">План зала ресторана</span>
           <div className="flex gap-3">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-zinc-700" /> Свободен
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-red-900" /> Занят
+              <span className="w-2 h-2 rounded-full bg-red-900" /> В листе
             </span>
           </div>
         </div>
@@ -152,12 +179,12 @@ export default function Booking({ t, lang = 'ru' }) {
           })}
         </div>
 
-        <p className="text-center text-[10px] font-sans text-zinc-500 mt-3">
-          Нажмите на свободный стол для перехода к бронированию ($45 / персона)
+        <p className="text-center text-[10px] font-sans text-zinc-400 mt-3">
+          Выберите стол для фиксации в группе. Дата показа утверждается по заполнению зала.
         </p>
       </div>
 
-      {/* Модальное окно: расширяется при показе билета */}
+      {/* Модальное окно */}
       <AnimatePresence>
         {isModalOpen && (
           <div 
@@ -172,7 +199,6 @@ export default function Booking({ t, lang = 'ru' }) {
                 status === 'success' ? 'max-w-4xl lg:max-w-5xl' : 'max-w-md'
               } bg-[#100c0a] border border-amber-600/40 rounded-3xl p-4 sm:p-6 shadow-2xl max-h-[94vh] overflow-y-auto overflow-x-hidden transition-all duration-300`}
             >
-              {/* Крестик закрытия */}
               <button 
                 type="button"
                 onClick={() => {
@@ -193,23 +219,21 @@ export default function Booking({ t, lang = 'ru' }) {
                     pairing: pairing === 'wine' ? 'Винный сет (Франция)' : 'Halal Кордиалы'
                   }}
                   lang={lang}
-                  calendarUrl={generateGoogleCalendarUrl()}
                 />
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-3 font-sans text-xs">
-                  <div className="mb-2">
-                    <span className="text-[9px] font-sans uppercase tracking-widest text-amber-500 font-bold">
-                      Оформление
+                  <div>
+                    <span className="text-[9px] uppercase tracking-widest text-amber-500 font-bold">
+                      Включение в закрытый лист
                     </span>
                     <h4 className="text-lg font-bold text-amber-100">
                       Столик #{selectedTable}
                     </h4>
                   </div>
 
-                  {/* Гости и депозит */}
                   <div className="p-3 bg-zinc-950/70 border border-amber-900/30 rounded-xl flex justify-between items-center">
                     <div>
-                      <span className="text-zinc-500 block text-[9px]">Депозит ($45/персона):</span>
+                      <span className="text-zinc-500 block text-[9px]">Депозит сета ($45/персона):</span>
                       <span className="text-base font-bold text-amber-400">${guests * TICKET_PRICE}</span>
                     </div>
                     <div className="flex gap-1">
@@ -219,9 +243,7 @@ export default function Booking({ t, lang = 'ru' }) {
                           type="button"
                           onClick={() => setGuests(num)}
                           className={`cursor-pointer w-7 h-7 rounded-lg font-bold text-xs transition-colors ${
-                            guests === num 
-                              ? 'bg-amber-500 text-black' 
-                              : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                            guests === num ? 'bg-amber-500 text-black' : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                           }`}
                         >
                           {num}
@@ -230,19 +252,14 @@ export default function Booking({ t, lang = 'ru' }) {
                     </div>
                   </div>
 
-                  {/* Пейринг */}
                   <div>
-                    <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">
-                      Пейринг напитков:
-                    </label>
+                    <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">Пейринг напитков:</label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         type="button"
                         onClick={() => setPairing('wine')}
                         className={`cursor-pointer py-2 px-2.5 rounded-lg border text-left flex items-center gap-1.5 transition-colors ${
-                          pairing === 'wine' 
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' 
-                            : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                          pairing === 'wine' ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' : 'bg-zinc-900 border-zinc-800 text-zinc-400'
                         }`}
                       >
                         <Wine className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -252,9 +269,7 @@ export default function Booking({ t, lang = 'ru' }) {
                         type="button"
                         onClick={() => setPairing('halal')}
                         className={`cursor-pointer py-2 px-2.5 rounded-lg border text-left flex items-center gap-1.5 transition-colors ${
-                          pairing === 'halal' 
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' 
-                            : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                          pairing === 'halal' ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' : 'bg-zinc-900 border-zinc-800 text-zinc-400'
                         }`}
                       >
                         <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -263,25 +278,16 @@ export default function Booking({ t, lang = 'ru' }) {
                     </div>
                   </div>
 
-                  {/* Голос за озвучку */}
                   <div>
-                    <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">
-                      Голос за дубляж:
-                    </label>
+                    <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">Голос за дубляж фильма:</label>
                     <div className="grid grid-cols-3 gap-1.5">
-                      {[
-                        { id: 'en', label: 'English' },
-                        { id: 'ru', label: 'Русский' },
-                        { id: 'it', label: 'Italiano' }
-                      ].map(item => (
+                      {[{ id: 'en', label: 'English' }, { id: 'ru', label: 'Русский' }, { id: 'it', label: 'Italiano' }].map(item => (
                         <button
                           key={item.id}
                           type="button"
                           onClick={() => setAudioVote(item.id)}
                           className={`cursor-pointer py-1.5 rounded-lg border text-xs transition-colors ${
-                            audioVote === item.id 
-                              ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' 
-                              : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                            audioVote === item.id ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' : 'bg-zinc-900 border-zinc-800 text-zinc-400'
                           }`}
                         >
                           {item.label}
@@ -290,25 +296,16 @@ export default function Booking({ t, lang = 'ru' }) {
                     </div>
                   </div>
 
-                  {/* Канал связи */}
                   <div>
-                    <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">
-                      Канал связи для трансфера:
-                    </label>
+                    <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">Способ связи консьержа:</label>
                     <div className="grid grid-cols-3 gap-1.5">
-                      {[
-                        { id: 'telegram', label: 'Telegram' },
-                        { id: 'whatsapp', label: 'WhatsApp' },
-                        { id: 'phone', label: 'Звонок' }
-                      ].map(item => (
+                      {[{ id: 'telegram', label: 'Telegram' }, { id: 'whatsapp', label: 'WhatsApp' }, { id: 'phone', label: 'Звонок' }].map(item => (
                         <button
                           key={item.id}
                           type="button"
                           onClick={() => setContactMethod(item.id)}
                           className={`cursor-pointer py-1.5 rounded-lg border text-xs transition-colors ${
-                            contactMethod === item.id 
-                              ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' 
-                              : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                            contactMethod === item.id ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' : 'bg-zinc-900 border-zinc-800 text-zinc-400'
                           }`}
                         >
                           {item.label}
@@ -317,7 +314,6 @@ export default function Booking({ t, lang = 'ru' }) {
                     </div>
                   </div>
 
-                  {/* Инпуты */}
                   <input
                     required
                     type="text"
@@ -333,7 +329,7 @@ export default function Booking({ t, lang = 'ru' }) {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder={contactMethod === 'telegram' ? "@username или телефон" : "+20 100 000 0000"}
+                    placeholder={contactMethod === 'telegram' ? "@username или номер" : "+20 100 000 0000"}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-amber-100 outline-none focus:border-amber-500"
                   />
                   <input
@@ -341,7 +337,7 @@ export default function Booking({ t, lang = 'ru' }) {
                     name="hotel"
                     value={formData.hotel}
                     onChange={handleInputChange}
-                    placeholder="Отель и комната (для VIP-трансфера)"
+                    placeholder="Отель (для организации трансфера)"
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-amber-100 outline-none focus:border-amber-500"
                   />
 
@@ -350,7 +346,7 @@ export default function Booking({ t, lang = 'ru' }) {
                     disabled={status === 'loading'}
                     className="cursor-pointer w-full mt-2 bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl uppercase tracking-widest text-xs shadow-lg transition-transform active:scale-98 disabled:opacity-50"
                   >
-                    {status === 'loading' ? 'Выпуск билета...' : 'Выпустить именной билет'}
+                    {status === 'loading' ? 'Генерация билета...' : 'Забронировать и получить билет'}
                   </button>
                 </form>
               )}
