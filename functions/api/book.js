@@ -1,24 +1,18 @@
-export const handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' })
-    };
-  }
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
 
   if (!token || !chatId) {
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Telegram secrets missing in Netlify configuration' })
-    };
+    return new Response(
+      JSON.stringify({ error: 'Missing Telegram environment variables in Cloudflare Pages' }), 
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
-    const payload = JSON.parse(event.body || '{}');
+    const payload = await request.json();
     const { 
       table, 
       guests, 
@@ -45,15 +39,19 @@ export const handler = async (event) => {
       `🏨 <b>Отель:</b> ${hotel || 'Не указан'}\n` +
       `⏳ <i>Формирование группы: уведомить о дате сеанса</i>`;
 
-    // Если клиент передал отрендеренный билет — отправляем фотокарточкой
+    // Отправка билета фотокарточкой через нативный Blob
     if (photoBase64 && photoBase64.startsWith('data:image')) {
-      const cleanBase64 = photoBase64.replace(/^data:image\/\w+;base64,/, '');
-      const buffer = Buffer.from(cleanBase64, 'base64');
-      const blob = new Blob([buffer], { type: 'image/png' });
+      const base64Data = photoBase64.split(',')[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const photoBlob = new Blob([bytes], { type: 'image/png' });
 
       const form = new FormData();
       form.append('chat_id', chatId);
-      form.append('photo', blob, `golden-ticket-${table}.png`);
+      form.append('photo', photoBlob, `golden-ticket-${table}.png`);
       form.append('caption', caption);
       form.append('parse_mode', 'HTML');
 
@@ -63,14 +61,11 @@ export const handler = async (event) => {
       });
 
       if (tgRes.ok) {
-        return {
-          statusCode: 200,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ success: true, mode: 'photo' })
-        };
+        return new Response(
+          JSON.stringify({ success: true, mode: 'photo' }), 
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
       }
-      
-      console.warn('sendPhoto failed, falling back to sendMessage');
     }
 
     // Резервный текстовый канал
@@ -86,17 +81,15 @@ export const handler = async (event) => {
 
     const textData = await textRes.json();
 
-    return {
-      statusCode: textRes.ok ? 200 : 502,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(textRes.ok ? { success: true, mode: 'text' } : { error: textData.description })
-    };
+    return new Response(
+      JSON.stringify(textRes.ok ? { success: true, mode: 'text' } : { error: textData.description }), 
+      { status: textRes.ok ? 200 : 502, headers: { 'Content-Type': 'application/json' } }
+    );
 
   } catch (err) {
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message })
-    };
+    return new Response(
+      JSON.stringify({ error: err.message }), 
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
-};
+}
