@@ -3,6 +3,13 @@
   "name": "ratarui",
   "main": "worker.js",
   "compatibility_date": "2026-02-01",
+  "keep_vars": true,
+  "secrets": {
+    "required": [
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_CHAT_ID"
+    ]
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

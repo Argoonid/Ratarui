@@ -2,7 +2,6 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Перехватываем эндпоинт бронирования
     if (url.pathname === '/api/book') {
       if (request.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
@@ -11,12 +10,19 @@ export default {
         });
       }
 
-      const token = env.TELEGRAM_BOT_TOKEN;
-      const chatId = env.TELEGRAM_CHAT_ID;
+      const token = env?.TELEGRAM_BOT_TOKEN;
+      const chatId = env?.TELEGRAM_CHAT_ID;
 
       if (!token || !chatId) {
         return new Response(
-          JSON.stringify({ error: 'Variables TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing in Cloudflare' }), 
+          JSON.stringify({ 
+            error: 'Variables TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing in Cloudflare',
+            debug: {
+              availableKeys: Object.keys(env || {}),
+              hasToken: Boolean(token),
+              hasChatId: Boolean(chatId)
+            }
+          }), 
           { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -49,7 +55,7 @@ export default {
           `🏨 <b>Отель:</b> ${hotel || 'Не указан'}\n` +
           `⏳ <i>Формирование группы: уведомить о дате сеанса</i>`;
 
-        // Отправка золотого билета фотокарточкой в Telegram
+        // Отправка билета фотокарточкой в Telegram
         if (photoBase64 && photoBase64.startsWith('data:image')) {
           const base64Data = photoBase64.split(',')[1];
           const binaryString = atob(base64Data);
@@ -103,7 +109,6 @@ export default {
       }
     }
 
-    // Все остальные запросы (HTML, JS, картинки) отдаем из статического бандла
     return env.ASSETS.fetch(request);
   }
 };
