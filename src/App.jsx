@@ -41,54 +41,55 @@ export default function App() {
 
   const t = dict[lang] || dict.en;
 
+  // Разгруженные фоновые лучи: blur-2xl на мобилках и глубокий blur-[110px+] на десктопе
   const chapters = useMemo(() => [
     {
       id: 'hero',
       roman: 'I',
       title: lang === 'it' ? 'Apertura' : lang === 'en' ? 'Curtain' : 'Входной занавес',
-      beamClass: '-top-20 right-10 w-96 h-[500px] bg-gradient-to-b from-amber-500/15 to-transparent rotate-12 blur-[110px]',
+      beamClass: '-top-20 right-10 w-72 sm:w-96 h-[350px] sm:h-[500px] bg-gradient-to-b from-amber-500/15 to-transparent rotate-12 blur-2xl sm:blur-[110px]',
       component: <Hero t={t} lang={lang} />
     },
     {
       id: 'paradox',
       roman: 'II',
       title: lang === 'it' ? 'Il Paradosso' : lang === 'en' ? 'Paradox' : 'Парадокс локации',
-      beamClass: '-bottom-10 -left-10 w-96 h-96 bg-amber-600/10 blur-[120px]',
+      beamClass: '-bottom-10 -left-10 w-72 sm:w-96 h-72 sm:h-96 bg-amber-600/10 blur-2xl sm:blur-[120px]',
       component: <Paradox t={t} lang={lang} />
     },
     {
       id: 'experience',
       roman: 'III',
       title: lang === 'it' ? 'La Serata' : lang === 'en' ? 'Timeline' : 'Анатомия вечера',
-      beamClass: 'bottom-0 left-1/2 -translate-x-1/2 w-full h-80 bg-amber-700/10 blur-[130px]',
+      beamClass: 'bottom-0 left-1/2 -translate-x-1/2 w-full h-64 sm:h-80 bg-amber-700/10 blur-2xl sm:blur-[130px]',
       component: <Experience t={t} />
     },
     {
       id: 'menu',
       roman: 'IV',
       title: lang === 'it' ? 'Menu' : lang === 'en' ? 'Menu' : 'Сет от Реми',
-      beamClass: 'top-1/3 left-1/2 -translate-x-1/2 w-full h-96 bg-amber-500/10 blur-[140px]',
+      beamClass: 'top-1/3 left-1/2 -translate-x-1/2 w-full h-72 sm:h-96 bg-amber-500/10 blur-2xl sm:blur-[140px]',
       component: <Menu t={t} lang={lang} />
     },
     {
       id: 'rules',
       roman: 'V',
       title: lang === 'it' ? 'Verdetto' : lang === 'en' ? 'Verdict' : 'Вердикт Эго',
-      beamClass: '-top-10 -left-10 w-80 h-96 bg-blue-900/15 blur-[110px]',
+      beamClass: '-top-10 -left-10 w-64 sm:w-80 h-72 sm:h-96 bg-blue-900/15 blur-2xl sm:blur-[110px]',
       component: <Rules t={t} />
     },
     {
       id: 'booking',
       roman: 'VI',
       title: lang === 'it' ? 'Prenotazione' : lang === 'en' ? 'Booking' : 'Бронь зала',
-      beamClass: 'top-10 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-amber-500/15 blur-[120px]',
+      beamClass: 'top-10 left-1/2 -translate-x-1/2 w-3/4 h-52 sm:h-64 bg-amber-500/15 blur-2xl sm:blur-[120px]',
       component: <Booking t={t} lang={lang} />
     },
     {
       id: 'location',
       roman: 'VII',
       title: lang === 'it' ? 'Posizione' : lang === 'en' ? 'Location' : 'Как нас найти',
-      beamClass: 'bottom-0 right-1/4 w-96 h-96 bg-amber-600/10 blur-[120px]',
+      beamClass: 'bottom-0 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-amber-600/10 blur-2xl sm:blur-[120px]',
       component: (
         <div className="w-full flex flex-col justify-between h-full">
           <LocationGuide t={t} />
@@ -101,7 +102,7 @@ export default function App() {
   return (
     <CinematicPreloader duration={8600}>
       <div className="w-screen h-[100dvh] overflow-hidden bg-[#060505] text-amber-50 font-serif antialiased relative selection:bg-amber-700 selection:text-white">
-        <div className="film-grain" />
+        <div className="film-grain pointer-events-none" />
         <Header lang={lang} setLang={setLang} />
 
         <main className="w-full h-full">

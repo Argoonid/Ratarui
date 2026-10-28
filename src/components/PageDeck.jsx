@@ -19,7 +19,7 @@ export default function PageDeck({ chapters, lang = 'ru', t }) {
 
       setTimeout(() => {
         isLocked.current = false;
-      }, 700);
+      }, 500);
     }
   };
 
@@ -56,36 +56,36 @@ export default function PageDeck({ chapters, lang = 'ru', t }) {
     else if (diff < -45) paginate(-1);
   };
 
+  // Аппаратный транзишн 60/120 FPS без фильтров яркости
   const pageVariants = {
     enter: (dir) => ({
       y: dir > 0 ? '100%' : '-100%',
-      scale: 0.98,
-      opacity: 0.4,
-      filter: 'brightness(0.6)'
+      opacity: 0,
+      scale: 0.98
     }),
     center: {
-      y: 0,
-      scale: 1,
+      y: '0%',
       opacity: 1,
-      filter: 'brightness(1)',
+      scale: 1,
       transition: {
-        y: { type: 'spring', stiffness: 220, damping: 28 },
-        opacity: { duration: 0.35 },
-        scale: { duration: 0.45 }
+        y: { ease: [0.22, 1, 0.36, 1], duration: 0.42 },
+        opacity: { ease: 'linear', duration: 0.26 },
+        scale: { ease: [0.22, 1, 0.36, 1], duration: 0.42 }
       }
     },
     exit: (dir) => ({
-      y: dir > 0 ? '-16%' : '16%',
-      scale: 0.92,
-      opacity: 0.1,
-      filter: 'brightness(0.2)',
-      transition: { duration: 0.55, ease: [0.32, 0.72, 0, 1] }
+      y: dir > 0 ? '-18%' : '18%',
+      opacity: 0,
+      scale: 0.96,
+      transition: {
+        ease: [0.22, 1, 0.36, 1],
+        duration: 0.38
+      }
     })
   };
 
   const currentChapter = chapters[index];
 
-  // Локализованные строки навигационного футера
   const footerLocation = t?.deckFooterLocation || (
     lang === 'it' 
       ? 'Città Vecchia • Ristorante ISTANBUL' 
@@ -166,7 +166,13 @@ export default function PageDeck({ chapters, lang = 'ru', t }) {
           initial="enter"
           animate="center"
           exit="exit"
-          className="absolute inset-0 w-full h-[100dvh] flex flex-col justify-between pl-3 pr-8 sm:pl-6 sm:pr-12 md:px-16 pt-16 md:pt-20 pb-4 overflow-hidden will-change-transform"
+          style={{
+            transformStyle: 'preserve-3d',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'translateZ(0)'
+          }}
+          className="absolute inset-0 w-full h-[100dvh] flex flex-col justify-between pl-3 pr-8 sm:pl-6 sm:pr-12 md:px-16 pt-16 md:pt-20 pb-4 overflow-hidden will-change-transform contain-paint"
         >
           {/* Световой луч главы */}
           <div className={`absolute pointer-events-none ${currentChapter.beamClass}`} />
