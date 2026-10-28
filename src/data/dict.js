@@ -73,6 +73,10 @@ export const dict = {
     ruleTimingDesc: "Each dish appears right at the moment of its triumph on screen. Being late disrupts the dramaturgy.",
     ruleAllergyLabel: "Dietary & Allergies:",
     ruleAllergyDesc: "The culinary set is set in stone, but adaptable with 48 hours notice to your concierge.",
+    statusBadge: "SESSION WAITING LIST",
+  deckFooterLocation: "Old Town • ISTANBUL Restaurant",
+  deckFooterScroll: "Scroll down",
+  deckFooterFinal: "Finale",
 
     // Menu
     menuSubtitle: "Cuisine Synchronisée",
@@ -200,6 +204,7 @@ export const dict = {
     ruleTimingDesc: "Блюдо появляется перед вами ровно в момент его триумфа на экране. Опоздание ломает драматургию.",
     ruleAllergyLabel: "Аллергии:",
     ruleAllergyDesc: "Сет монументален, но адаптируется при уведомлении координатора за 48 часов до сеанса.",
+    
 
     // Меню (Menu)
     menuSubtitle: "Cuisine Synchronisée",
@@ -313,6 +318,10 @@ export const dict = {
     ruleTimingDesc: "Il piatto appare davanti a voi esattamente nel momento del suo trionfo sullo schermo. Il ritardo distrugge la drammaturgia.",
     ruleAllergyLabel: "Allergie e diete:",
     ruleAllergyDesc: "Il menu è strutturato, ma adattabile previa comunicazione al concierge almeno 48 ore prima.",
+    statusBadge: "LISTA D'ATTESA SESSIONE",
+  deckFooterLocation: "Città Vecchia • Ristorante ISTANBUL",
+  deckFooterScroll: "Scorri verso il basso",
+  deckFooterFinal: "Fine",
 
     // Menu
     menuSubtitle: "Cuisine Synchronisée",

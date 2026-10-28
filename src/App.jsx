@@ -93,7 +93,7 @@ export default function App() {
         <Header lang={lang} setLang={setLang} />
 
         <main className="w-full h-full">
-          <PageDeck chapters={chapters} />
+          <PageDeck chapters={chapters} lang={lang} t={t} />
         </main>
       </div>
     </CinematicPreloader>

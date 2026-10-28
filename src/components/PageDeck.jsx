@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SparkleField from './SparkleField';
 
-export default function PageDeck({ chapters }) {
+export default function PageDeck({ chapters, lang = 'ru', t }) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const isLocked = useRef(false);
@@ -85,6 +85,29 @@ export default function PageDeck({ chapters }) {
 
   const currentChapter = chapters[index];
 
+  // Локализованные строки навигационного футера
+  const footerLocation = t?.deckFooterLocation || (
+    lang === 'it' 
+      ? 'Città Vecchia • Ristorante ISTANBUL' 
+      : lang === 'en' 
+        ? 'Old Town • ISTANBUL Restaurant' 
+        : 'Старый Город • Ресторан ISTANBUL'
+  );
+
+  const footerScroll = t?.deckFooterScroll || (
+    lang === 'it' ? 'Scorri verso il basso' : lang === 'en' ? 'Scroll down' : 'Листайте вниз'
+  );
+
+  const footerFinal = t?.deckFooterFinal || (
+    lang === 'it' ? 'Fine' : lang === 'en' ? 'Finale' : 'Финал'
+  );
+
+  const navAriaLabel = lang === 'it' 
+    ? 'Navigazione capitoli' 
+    : lang === 'en' 
+      ? 'Chapter navigation' 
+      : 'Навигация по главам';
+
   return (
     <div 
       className="relative w-screen h-[100dvh] overflow-hidden bg-[#060505] select-none"
@@ -93,7 +116,7 @@ export default function PageDeck({ chapters }) {
     >
       {/* Правая нить прогресса с римскими цифрами */}
       <nav 
-        aria-label="Навигация по главам"
+        aria-label={navAriaLabel}
         className="fixed right-2 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3"
       >
         <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-amber-900/40 to-transparent pointer-events-none" />
@@ -148,7 +171,7 @@ export default function PageDeck({ chapters }) {
           {/* Световой луч главы */}
           <div className={`absolute pointer-events-none ${currentChapter.beamClass}`} />
 
-          {/* Индивидуальное созвездие звёзд для конкретной главы */}
+          {/* Индивидуальное созвездие звёзд */}
           <SparkleField seed={currentChapter.id} />
 
           {/* Верхний колонтитул */}
@@ -166,9 +189,9 @@ export default function PageDeck({ chapters }) {
 
           {/* Нижний колонтитул */}
           <div className="relative z-10 w-full max-w-6xl mx-auto flex justify-between items-center text-[9px] font-sans text-zinc-500 uppercase tracking-widest pt-2 border-t border-amber-900/15">
-            <span>Старый Город • Ресторан ISTANBUL</span>
+            <span>{footerLocation}</span>
             <div className="flex items-center gap-1.5 text-amber-500/60">
-              <span>{index === chapters.length - 1 ? 'Финал' : 'Листайте вниз'}</span>
+              <span>{index === chapters.length - 1 ? footerFinal : footerScroll}</span>
               {index < chapters.length - 1 && <span className="animate-bounce">↓</span>}
             </div>
           </div>

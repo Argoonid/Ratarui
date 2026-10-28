@@ -37,21 +37,40 @@ export default function Booking({ t, lang = 'ru' }) {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Локализованная надпись счетчика оставшихся мест
+  // Локализация бейджей и текстов со строгими фолбэками под выбранный язык
+  const statusBadgeText = t?.statusBadge || (
+    lang === 'it' 
+      ? "Lista d'attesa sessione" 
+      : lang === 'en' 
+        ? 'Session Waiting List' 
+        : 'Лист ожидания сеанса'
+  );
+
   const waitlistBadgeText = t?.waitlistBadge
     ? t.waitlistBadge.replace('{left}', availableCount).replace('{total}', TOTAL_TABLES)
-    : `Формирование группы: осталось ${availableCount} из ${TOTAL_TABLES} столов`;
+    : (
+      lang === 'it'
+        ? `Formazione gruppo: restano ${availableCount} di ${TOTAL_TABLES} tavoli`
+        : lang === 'en'
+          ? `Group forming: ${availableCount} of ${TOTAL_TABLES} tables remaining`
+          : `Формирование группы: осталось ${availableCount} из ${TOTAL_TABLES} столов`
+    );
 
-  const pairingLabelText = pairing === 'wine' 
-    ? (t?.wine || 'Винный сет (Франция)') 
-    : (t?.halal || 'Halal Кордиалы');
+  const wineLabel = t?.wine || (
+    lang === 'it' ? 'Set di vini (FR)' : lang === 'en' ? 'Wine pairing (FR)' : 'Винный сет (Франция)'
+  );
+
+  const halalLabel = t?.halal || (
+    lang === 'it' ? 'Cordial analcolici Halal' : lang === 'en' ? 'Halal Cordials' : 'Halal Кордиалы'
+  );
+
+  const pairingLabelText = pairing === 'wine' ? wineLabel : halalLabel;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedTable) return;
     setStatus('loading');
 
-    // 1. Отрисовываем снимок билета в скрытом буфере для Telegram
     let photoBase64 = null;
     try {
       if (captureRef.current) {
@@ -97,7 +116,7 @@ export default function Booking({ t, lang = 'ru' }) {
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col justify-center py-1 select-none">
       
-      {/* СКРЫТЫЙ БУФЕР ДЛЯ РЕНДЕРА КАРТИНКИ В TELEGRAM */}
+      {/* Скрытый буфер для рендера билета в Telegram */}
       <div 
         style={{ 
           position: 'fixed', 
@@ -114,7 +133,7 @@ export default function Booking({ t, lang = 'ru' }) {
           <VIPTicket 
             bookingData={{
               table: selectedTable || 1,
-              name: formData.name || (t?.guestLabel || "Гость"),
+              name: formData.name || (t?.guestLabel || (lang === 'it' ? 'Ospite' : lang === 'en' ? 'Guest' : 'Гость')),
               guests: guests,
               pairing: pairingLabelText
             }}
@@ -127,10 +146,10 @@ export default function Booking({ t, lang = 'ru' }) {
       {/* Шапка блока */}
       <div className="text-center mb-3">
         <span className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-sans font-bold">
-          {t?.statusBadge || "Лист ожидания сеанса"}
+          {statusBadgeText}
         </span>
         <h3 className="text-xl sm:text-2xl md:text-3xl text-amber-100 font-bold mt-0.5">
-          {t?.bookTitle || "Бронь кинозала"}
+          {t?.bookTitle || (lang === 'it' ? 'Prenota il tuo tavolo' : lang === 'en' ? 'Reserve your table' : 'Бронь кинозала')}
         </h3>
         
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-950/40 border border-amber-800/40 rounded-full text-[11px] font-sans text-amber-300 mt-1.5">
@@ -146,21 +165,23 @@ export default function Booking({ t, lang = 'ru' }) {
       >
         <div className="flex justify-between items-center mb-2.5 text-[10px] font-sans text-zinc-400">
           <span className="uppercase tracking-wider text-amber-500 font-bold">
-            {t?.planTitle || "План зала ресторана"}
+            {t?.planTitle || (lang === 'it' ? 'Planimetria del ristorante' : lang === 'en' ? 'Restaurant floor plan' : 'План зала ресторана')}
           </span>
           <div className="flex gap-3">
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-zinc-700" /> {t?.freeStatus || "Свободен"}
+              <span className="w-2 h-2 rounded-full bg-zinc-700" /> 
+              {t?.freeStatus || (lang === 'it' ? 'Disponibile' : lang === 'en' ? 'Available' : 'Свободен')}
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-red-900" /> {t?.bookedStatus || "В листе"}
+              <span className="w-2 h-2 rounded-full bg-red-900" /> 
+              {t?.bookedStatus || (lang === 'it' ? 'In lista' : lang === 'en' ? 'Waitlisted' : 'В листе')}
             </span>
           </div>
         </div>
 
         <div className="w-full py-1 bg-gradient-to-b from-amber-500/20 to-transparent border-t-2 border-amber-500/60 text-center rounded-t mb-3">
           <span className="text-[8px] tracking-[0.4em] uppercase text-amber-300 font-sans font-bold">
-            {t?.screenLabel || "4K PROJECTION SCREEN"}
+            {t?.screenLabel || (lang === 'it' ? 'SCHERMO PROIEZIONE 4K' : '4K PROJECTION SCREEN')}
           </span>
         </div>
 
@@ -182,7 +203,7 @@ export default function Booking({ t, lang = 'ru' }) {
                 }`}
               >
                 <span className="text-[8px] uppercase tracking-wider opacity-60">
-                  {t?.tablePrefix || "Стол"}
+                  {t?.tablePrefix || (lang === 'it' ? 'Tavolo' : lang === 'en' ? 'Table' : 'Стол')}
                 </span>
                 <span className="text-xs font-bold">{table.id}</span>
               </button>
@@ -191,7 +212,13 @@ export default function Booking({ t, lang = 'ru' }) {
         </div>
 
         <p className="text-center text-[10px] font-sans text-zinc-400 mt-3">
-          {t?.planNotice || "Выберите стол для фиксации в группе. Дата показа утверждается по заполнению зала."}
+          {t?.planNotice || (
+            lang === 'it'
+              ? 'Seleziona un tavolo per assicurarti il posto. La data sarà confermata al completamento delle prenotazioni.'
+              : lang === 'en'
+                ? 'Select a table to secure your seat. Date confirmed upon group completion.'
+                : 'Выберите стол для фиксации в группе. Дата показа утверждается по заполнению зала.'
+          )}
         </p>
       </div>
 
@@ -235,17 +262,17 @@ export default function Booking({ t, lang = 'ru' }) {
                 <form onSubmit={handleSubmit} className="space-y-3 font-sans text-xs">
                   <div>
                     <span className="text-[9px] uppercase tracking-widest text-amber-500 font-bold">
-                      {t?.modalSubtitle || "Включение в закрытый лист"}
+                      {t?.modalSubtitle || (lang === 'it' ? 'Inclusione nella lista esclusiva' : lang === 'en' ? 'Private list inclusion' : 'Включение в закрытый лист')}
                     </span>
                     <h4 className="text-lg font-bold text-amber-100">
-                      {t?.tablePrefix || "Столик"} #{selectedTable}
+                      {t?.tablePrefix || (lang === 'it' ? 'Tavolo' : lang === 'en' ? 'Table' : 'Столик')} #{selectedTable}
                     </h4>
                   </div>
 
                   <div className="p-3 bg-zinc-950/70 border border-amber-900/30 rounded-xl flex justify-between items-center">
                     <div>
                       <span className="text-zinc-500 block text-[9px]">
-                        {t?.depositLabel || "Депозит сета ($45/персона):"}
+                        {t?.depositLabel || (lang === 'it' ? 'Deposito menu ($45/ospite):' : lang === 'en' ? 'Set deposit ($45/guest):' : 'Депозит сета ($45/персона):')}
                       </span>
                       <span className="text-base font-bold text-amber-400">${guests * TICKET_PRICE}</span>
                     </div>
@@ -267,7 +294,7 @@ export default function Booking({ t, lang = 'ru' }) {
 
                   <div>
                     <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">
-                      {t?.pairingLabel || "Пейринг напитков:"}
+                      {t?.pairingLabel || (lang === 'it' ? 'Abbinamento bevande:' : lang === 'en' ? 'Beverage pairing:' : 'Пейринг напитков:')}
                     </label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
@@ -278,7 +305,7 @@ export default function Booking({ t, lang = 'ru' }) {
                         }`}
                       >
                         <Wine className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        <span className="truncate">{t?.wine || "Винный сет (FR)"}</span>
+                        <span className="truncate">{wineLabel}</span>
                       </button>
                       <button
                         type="button"
@@ -288,14 +315,14 @@ export default function Booking({ t, lang = 'ru' }) {
                         }`}
                       >
                         <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        <span className="truncate">{t?.halal || "Halal Кордиалы"}</span>
+                        <span className="truncate">{halalLabel}</span>
                       </button>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">
-                      {t?.voiceLabel || "Голос за дубляж фильма:"}
+                      {t?.voiceLabel || (lang === 'it' ? 'Doppiaggio film:' : lang === 'en' ? 'Dubbing audio:' : 'Голос за дубляж фильма:')}
                     </label>
                     <div className="grid grid-cols-3 gap-1.5">
                       {[{ id: 'en', label: 'English' }, { id: 'ru', label: 'Русский' }, { id: 'it', label: 'Italiano' }].map(item => (
@@ -315,13 +342,13 @@ export default function Booking({ t, lang = 'ru' }) {
 
                   <div>
                     <label className="text-zinc-400 block mb-1 uppercase tracking-wider text-[9px]">
-                      {t?.contactLabel || "Способ связи консьержа:"}
+                      {t?.contactLabel || (lang === 'it' ? 'Metodo di contatto preferito:' : lang === 'en' ? 'Preferred contact channel:' : 'Способ связи консьержа:')}
                     </label>
                     <div className="grid grid-cols-3 gap-1.5">
                       {[
                         { id: 'telegram', label: 'Telegram' }, 
                         { id: 'whatsapp', label: 'WhatsApp' }, 
-                        { id: 'phone', label: t?.contactCall || (lang === 'it' ? 'Chiamata' : lang === 'en' ? 'Call' : 'Звонок') }
+                        { id: 'phone', label: t?.contactCall || (lang === 'it' ? 'Chiamata' : lang === 'en' ? 'Direct Call' : 'Звонок') }
                       ].map(item => (
                         <button
                           key={item.id}
@@ -343,7 +370,7 @@ export default function Booking({ t, lang = 'ru' }) {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder={t?.namePlaceholder || "Ваше имя и фамилия"}
+                    placeholder={t?.namePlaceholder || (lang === 'it' ? 'Nome e cognome' : lang === 'en' ? 'Full name' : 'Ваше имя и фамилия')}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-amber-100 outline-none focus:border-amber-500"
                   />
                   <input
@@ -352,7 +379,9 @@ export default function Booking({ t, lang = 'ru' }) {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder={contactMethod === 'telegram' ? (t?.phonePlaceholder || "@username или номер") : "+20 100 000 0000"}
+                    placeholder={contactMethod === 'telegram' 
+                      ? (t?.phonePlaceholder || (lang === 'it' ? '@username o numero' : lang === 'en' ? '@username or phone' : '@username или номер')) 
+                      : "+20 100 000 0000"}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-amber-100 outline-none focus:border-amber-500"
                   />
                   <input
@@ -360,7 +389,7 @@ export default function Booking({ t, lang = 'ru' }) {
                     name="hotel"
                     value={formData.hotel}
                     onChange={handleInputChange}
-                    placeholder={t?.hotelPlaceholder || "Отель (для организации трансфера)"}
+                    placeholder={t?.hotelPlaceholder || (lang === 'it' ? 'Hotel (per il transfer)' : lang === 'en' ? 'Hotel name (for VIP pickup)' : 'Отель (для организации трансфера)')}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-amber-100 outline-none focus:border-amber-500"
                   />
 
@@ -370,8 +399,8 @@ export default function Booking({ t, lang = 'ru' }) {
                     className="cursor-pointer w-full mt-2 bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl uppercase tracking-widest text-xs shadow-lg transition-transform active:scale-98 disabled:opacity-50"
                   >
                     {status === 'loading' 
-                      ? (t?.btnLoading || 'Генерация билета...') 
-                      : (t?.btnSubmit || 'Забронировать и получить билет')}
+                      ? (t?.btnLoading || (lang === 'it' ? 'Generazione biglietto...' : lang === 'en' ? 'Generating ticket...' : 'Генерация билета...')) 
+                      : (t?.btnSubmit || (lang === 'it' ? 'Prenota e ricevi il biglietto' : lang === 'en' ? 'Reserve and get VIP ticket' : 'Забронировать и получить билет'))}
                   </button>
                 </form>
               )}
