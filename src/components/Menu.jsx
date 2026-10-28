@@ -20,13 +20,19 @@ export default function Menu({ t }) {
     setCurrentIdx((prev) => (prev - 1 + courses.length) % courses.length);
   };
 
+  // Локализованные данные для активного блюда
+  const localizedDish = t?.dishes?.[currentDish.id] || {};
+  const currentTitle = localizedDish.title || currentDish.title;
+  const currentDesc = localizedDish.desc || currentDish.desc;
+  const currentPairing = localizedDish.pairing || currentDish.pairing;
+
   return (
     <div className="relative w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col justify-between py-1 px-2 sm:px-4 h-full max-h-[88dvh] select-none">
       
-      {/* ДОВОЛЬНАЯ ГОЛОВА РЕМИ: ПОДНЯТА НА 90px ВВЕРХ, УВЕДЕНА В ФОН */}
+      {/* ГОЛОВА РЕМИ */}
       <div className="absolute -top-16 sm:-top-24 md:-top-28 left-1/2 -translate-x-1/2 w-48 sm:w-64 md:w-80 pointer-events-none opacity-35 z-0">
         <img 
-          src={`${import.meta.env.BASE_URL}remi.png`}
+          src={`${import.meta.env.BASE_URL}remi.png`} 
           alt="" 
           className="w-full h-auto object-contain mix-blend-screen filter drop-shadow-[0_0_30px_rgba(245,158,11,0.2)]"
           style={{
@@ -39,7 +45,7 @@ export default function Menu({ t }) {
       {/* 1. ЗАГОЛОВОК СЕКЦИИ */}
       <div className="relative z-10 text-center flex flex-col items-center shrink-0 pt-1 sm:pt-2">
         <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.35em] text-amber-500 font-sans font-bold drop-shadow">
-          Cuisine Synchronisée
+          {t?.menuSubtitle || "Cuisine Synchronisée"}
         </span>
         <h3 className="text-xl sm:text-3xl md:text-4xl text-amber-100 font-bold font-serif leading-tight mt-0.5">
           {t?.menuTitle || "Меню от Реми"}
@@ -96,13 +102,13 @@ export default function Menu({ t }) {
             <div className="md:col-span-6 flex flex-col justify-between h-full py-0.5 sm:py-2">
               <div>
                 <div className="text-[9px] sm:text-[11px] uppercase tracking-widest text-amber-500 font-sans font-bold mb-0.5">
-                  Курс {currentDish.id} из {courses.length} • {currentDish.title}
+                  {t?.courseWord || "Курс"} {currentDish.id} {t?.ofWord || "из"} {courses.length} • {currentTitle}
                 </div>
                 <h4 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-amber-50 leading-tight mb-1 sm:mb-2">
                   {currentDish.name}
                 </h4>
                 <p className="text-[11px] sm:text-xs md:text-sm text-zinc-300 font-sans leading-snug sm:leading-relaxed line-clamp-3 sm:line-clamp-none">
-                  {currentDish.desc}
+                  {currentDesc}
                 </p>
               </div>
 
@@ -111,8 +117,10 @@ export default function Menu({ t }) {
                   <Wine className="w-3.5 h-3.5" />
                 </div>
                 <div className="text-[10px] sm:text-xs font-sans text-zinc-300 truncate">
-                  <span className="text-zinc-500 mr-1.5 font-bold uppercase text-[9px]">Пейринг:</span>
-                  <span className="text-amber-200">{currentDish.pairing}</span>
+                  <span className="text-zinc-500 mr-1.5 font-bold uppercase text-[9px]">
+                    {t?.pairingWord || "Пейринг:"}
+                  </span>
+                  <span className="text-amber-200">{currentPairing}</span>
                 </div>
               </div>
             </div>
@@ -125,11 +133,11 @@ export default function Menu({ t }) {
         <button
           type="button"
           onClick={handlePrev}
-          aria-label="Предыдущее блюдо"
+          aria-label={t?.btnPrev || "Назад"}
           className="cursor-pointer h-9 px-3.5 rounded-xl bg-zinc-950 border border-amber-900/50 hover:border-amber-400 text-amber-300 hover:text-black hover:bg-amber-500 flex items-center gap-1 text-xs font-sans font-semibold transition-all active:scale-95 shadow-md"
         >
           <ChevronLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Назад</span>
+          <span className="hidden sm:inline">{t?.btnPrev || "Назад"}</span>
         </button>
 
         <button
@@ -141,16 +149,16 @@ export default function Menu({ t }) {
           className="cursor-pointer h-9 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-amber-950/70 to-zinc-950 border border-amber-700/60 hover:border-amber-400 text-amber-200 hover:text-white flex items-center gap-1.5 text-[11px] font-sans uppercase tracking-wider transition-all shadow-md active:scale-95"
         >
           <Utensils className="w-3 h-3 text-amber-400" />
-          <span>3 блюда на столе</span>
+          <span>{t?.btnTableBase || "3 блюда на столе"}</span>
         </button>
 
         <button
           type="button"
           onClick={handleNext}
-          aria-label="Следующее блюдо"
+          aria-label={t?.btnNext || "Вперед"}
           className="cursor-pointer h-9 px-3.5 rounded-xl bg-zinc-950 border border-amber-900/50 hover:border-amber-400 text-amber-300 hover:text-black hover:bg-amber-500 flex items-center gap-1 text-xs font-sans font-semibold transition-all active:scale-95 shadow-md"
         >
-          <span className="hidden sm:inline">Вперед</span>
+          <span className="hidden sm:inline">{t?.btnNext || "Вперед"}</span>
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -171,10 +179,10 @@ export default function Menu({ t }) {
               <div className="flex justify-between items-center mb-3.5 pb-2.5 border-b border-amber-900/30">
                 <div>
                   <span className="text-[9px] font-sans uppercase tracking-widest text-amber-500 font-bold block">
-                    Sur la table
+                    {t?.tableBaseSub || "SUR LA TABLE"}
                   </span>
                   <h4 className="text-base sm:text-lg font-serif font-bold text-amber-100">
-                    На столе на протяжении всего сеанса
+                    {t?.tableBaseTitle || "На столе на протяжении всего сеанса"}
                   </h4>
                 </div>
                 <button 
@@ -187,33 +195,36 @@ export default function Menu({ t }) {
               </div>
 
               <div className="space-y-2.5">
-                {menuData.tableBase.map((item) => (
-                  <div key={item.id} className="p-2 sm:p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-amber-900/40">
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover scale-110"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-0.5">
-                        <h5 className="font-serif font-bold text-amber-100 text-xs sm:text-sm truncate">
-                          {item.name}
-                        </h5>
-                        <span className="text-[10px] font-sans text-amber-400 font-semibold shrink-0 ml-2">
-                          {item.weight}
-                        </span>
+                {menuData.tableBase.map((item) => {
+                  const localizedBase = t?.dishes?.[item.id] || {};
+                  return (
+                    <div key={item.id} className="p-2 sm:p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 flex items-center gap-3">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-amber-900/40">
+                        <img 
+                          src={item.image} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover scale-110"
+                        />
                       </div>
-                      <div className="text-[10px] text-amber-600 font-sans font-medium mb-0.5">
-                        {item.title}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline mb-0.5">
+                          <h5 className="font-serif font-bold text-amber-100 text-xs sm:text-sm truncate">
+                            {item.name}
+                          </h5>
+                          <span className="text-[10px] font-sans text-amber-400 font-semibold shrink-0 ml-2">
+                            {item.weight}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-amber-600 font-sans font-medium mb-0.5">
+                          {localizedBase.title || item.title}
+                        </div>
+                        <p className="text-[11px] text-zinc-400 font-sans leading-snug line-clamp-2">
+                          {localizedBase.desc || item.desc}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-zinc-400 font-sans leading-snug line-clamp-2">
-                        {item.desc}
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <button
@@ -221,7 +232,7 @@ export default function Menu({ t }) {
                 onClick={() => setIsModalOpen(false)}
                 className="cursor-pointer w-full mt-4 bg-amber-500 hover:bg-amber-400 text-black py-2.5 rounded-xl font-sans font-bold text-xs uppercase tracking-widest transition-colors shadow-lg"
               >
-                Вернуться к меню
+                {t?.btnBackToMenu || "Вернуться к меню"}
               </button>
             </motion.div>
           </div>

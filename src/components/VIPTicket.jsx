@@ -16,9 +16,10 @@ const I18N = {
     guestLabel: "ГОСТЬ",
     tableLabel: "СТОЛ",
     guestsSuffix: "ПЕРСОНЫ",
-    sessionLabel: "СЕАНС 20:00",
-    date: "СБОР ГРУППЫ",
-    entryNotice: "ЛИСТ ОЖИДАНИЯ",
+    statusBadge: "ЛИСТ ОЖИДАНИЯ",
+    entryNotice: "ВХОД ПО СПИСКУ БРОНИ",
+    stubDate: "ДАТА ПО НАБОРУ ГРУППЫ",
+    stubSession: "СЕАНС 20:00",
     pairingPrefix: "СЕТ:",
     controlTitle: "КОНТРОЛЬ",
     gusteauTop: "AUGUSTE",
@@ -28,11 +29,11 @@ const I18N = {
     egoMid: "ОДОБРЕНО",
     egoBot: "EGO",
     btnSave: "Сохранить билет (PNG)",
-    btnSaving: "Создание билета...",
+    btnSaving: "Формирование...",
     btnSaved: "Билет в галерее",
     wine: "Винный сет (Франция)",
     halal: "Halal Кордиалы",
-    notice: "Дата показа утверждается по заполнению зала (20 столов). Консьерж уведомит вас лично."
+    conciergeNote: "Показ закрытый (лимит 20 столов). Точная дата согласуется консьержем индивидуально с каждым гостем."
   },
   en: {
     passType: "CINEMA GASTRONOMY PASS",
@@ -41,9 +42,10 @@ const I18N = {
     guestLabel: "GUEST",
     tableLabel: "TABLE",
     guestsSuffix: "GUESTS",
-    sessionLabel: "SESSION 20:00",
-    date: "GROUP FORMING",
-    entryNotice: "PRIVATE WAITLIST",
+    statusBadge: "PRIVATE WAITLIST",
+    entryNotice: "RESERVATION LIST ONLY",
+    stubDate: "DATE UPON GROUP COMPLETION",
+    stubSession: "SESSION 20:00",
     pairingPrefix: "PAIRING:",
     controlTitle: "STUB",
     gusteauTop: "AUGUSTE",
@@ -53,11 +55,37 @@ const I18N = {
     egoMid: "APPROVED",
     egoBot: "EGO",
     btnSave: "Save Ticket (PNG)",
-    btnSaving: "Rendering...",
+    btnSaving: "Generating...",
     btnSaved: "Saved to Gallery",
     wine: "French Wine Pairing",
     halal: "Halal Cordials",
-    notice: "Event date confirmed once all 20 tables are reserved. You will be notified directly."
+    conciergeNote: "Private screening (20 tables limit). Event date is coordinated individually by concierge once group forms."
+  },
+  it: {
+    passType: "PASS CINEMA GASTRONOMICO",
+    movie: "RATATOUILLE",
+    location: "ISTANBUL • OLD TOWN • SHARM EL SHEIKH",
+    guestLabel: "OSPITE",
+    tableLabel: "TAVOLO",
+    guestsSuffix: "OSPITI",
+    statusBadge: "LISTA D'ATTESA",
+    entryNotice: "INGRESSO SU PRENOTAZIONE",
+    stubDate: "DATA AL COMPLETAMENTO GRUPPO",
+    stubSession: "SESSIONE 20:00",
+    pairingPrefix: "ABBINAMENTO:",
+    controlTitle: "CONTROLLO",
+    gusteauTop: "AUGUSTE",
+    gusteauMid: "SERVITO",
+    gusteauBot: "GUSTEAU",
+    egoTop: "ANTOINE",
+    egoMid: "APPROVATO",
+    egoBot: "EGO",
+    btnSave: "Salva Biglietto (PNG)",
+    btnSaving: "Creazione...",
+    btnSaved: "Salvato",
+    wine: "Abbinamento Vini Francesi",
+    halal: "Cordiali Halal",
+    conciergeNote: "Proiezione privata (limite 20 tavoli). La data viene concordata individualmente dal concierge."
   }
 };
 
@@ -77,6 +105,7 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
     return LUCKY_NUMBERS[Math.floor(Math.random() * LUCKY_NUMBERS.length)];
   }, []);
 
+  // Автоподгон размера под ширину экрана
   useEffect(() => {
     if (isCaptureMode || !containerRef.current) return;
 
@@ -110,14 +139,14 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
       });
 
       const link = document.createElement('a');
-      link.download = `Golden-Ticket-Table-${bookingData.table || 'VIP'}.png`;
+      link.download = `Pass-Ratatouille-Table-${bookingData.table || 'VIP'}.png`;
       link.href = dataUrl;
       link.click();
 
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
     } catch (err) {
-      console.error('Ошибка сохранения:', err);
+      console.error('Ошибка экспорта билета:', err);
     } finally {
       setIsExporting(false);
     }
@@ -125,6 +154,7 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
 
   const pairingText = bookingData.pairing?.includes('Винный') || bookingData.pairing?.includes('Wine') ? t.wine : t.halal;
 
+  // Отрисовка бланка (880x370)
   const renderTicketBody = () => (
     <div 
       ref={ticketRef}
@@ -134,6 +164,7 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
         boxShadow: '0 25px 60px rgba(0,0,0,0.95), inset 0 2px 4px rgba(255,255,255,0.7), inset 0 -3px 6px rgba(0,0,0,0.6)'
       }}
     >
+      {/* Текстура шлифовки */}
       <div 
         className="absolute inset-0 opacity-[0.14] pointer-events-none"
         style={{
@@ -141,10 +172,13 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
         }}
       />
 
+      {/* Внутренняя гравированная рамка */}
       <div className="absolute inset-3 border-[1.5px] border-[#5a4222] rounded-md pointer-events-none opacity-40 shadow-[0_1px_1px_rgba(255,255,255,0.5)]" />
 
-      {/* Левая часть */}
+      {/* ================= ЛЕВАЯ ЧАСТЬ ================= */}
       <div className="flex-1 p-8 flex flex-col justify-between relative border-r-[3px] border-dotted border-[#7c561b]">
+        
+        {/* Верхняя строка */}
         <div className="relative z-10 flex justify-between items-center text-xs tracking-[0.35em] font-sans uppercase font-black">
           <div className="flex items-center gap-2" style={{ textShadow: '0 1px 1px rgba(255,255,255,0.6)' }}>
             <span>✦</span>
@@ -156,6 +190,7 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
           </div>
         </div>
 
+        {/* Центр */}
         <div className="relative z-10 my-auto pr-6">
           <div className="text-[10px] font-sans tracking-[0.3em] uppercase font-bold mb-1" style={{ textShadow: '0 1px 1px rgba(255,255,255,0.6)' }}>
             {t.location}
@@ -174,18 +209,20 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
           </div>
         </div>
 
+        {/* Левый нижний угол: Пейринг и Статус ожидания (БЕЗ ДАТЫ) */}
         <div className="relative z-10 flex flex-col font-sans text-xs font-bold tracking-wide" style={{ textShadow: '0 1px 1px rgba(255,255,255,0.6)' }}>
           <div className="uppercase">
             <span className="mr-2 text-[#4a3418]">{t.pairingPrefix}</span>
             <span className="text-[#1a120b]">{pairingText}</span>
           </div>
-          <div className="text-[10px] mt-0.5 tracking-widest text-[#4a3418]">
-            {t.date} • {t.entryNotice}
+          <div className="text-[10px] mt-0.5 tracking-widest text-[#4a3418] uppercase">
+            {t.statusBadge} • {t.entryNotice}
           </div>
         </div>
 
         {/* Восковые печати */}
         <div className="absolute right-[-10px] bottom-3 flex items-center -space-x-7 z-30 pointer-events-none">
+          {/* Печать Гюсто */}
           <div 
             className="w-26 h-26 flex items-center justify-center relative rotate-[-10deg]"
             style={{
@@ -208,6 +245,7 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
             </div>
           </div>
 
+          {/* Печать Эго */}
           <div 
             className="w-26 h-26 flex items-center justify-center relative rotate-[14deg] mt-8"
             style={{
@@ -232,10 +270,11 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
         </div>
       </div>
 
+      {/* Вырезы перфорации */}
       <div className="absolute right-[244px] -top-5 w-10 h-10 rounded-full bg-[#100c0a] shadow-[inset_0_2px_8px_rgba(0,0,0,0.9)] z-20" />
       <div className="absolute right-[244px] -bottom-5 w-10 h-10 rounded-full bg-[#100c0a] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.9)] z-20" />
 
-      {/* Корешок */}
+      {/* ================= ОТРЫВНОЙ КОРЕШОК ================= */}
       <div className="w-[256px] p-7 flex flex-col justify-between relative">
         <div className="text-center pb-3 border-b-2 border-dotted border-[#7c561b]">
           <span className="text-xs font-sans uppercase tracking-[0.35em] font-black block mb-1" style={{ textShadow: '0 1px 1px rgba(255,255,255,0.6)' }}>
@@ -265,25 +304,31 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
           </div>
         </div>
 
+        {/* Низ корешка: Номер и Условие сбора группы (БЕЗ ДАТЫ) */}
         <div className="text-center pt-3 border-t-2 border-dotted border-[#7c561b]">
           <span className="text-xs font-mono font-black tracking-widest block mb-1" style={{ color: '#24180e' }}>
             № {ticketNumber}
           </span>
-          <span className="text-[9px] font-sans font-bold tracking-widest uppercase block" style={{ textShadow: '0 1px 1px rgba(255,255,255,0.6)' }}>
-            {t.date} • {t.sessionLabel}
+          <span className="text-[8px] font-sans font-bold tracking-wider uppercase block" style={{ textShadow: '0 1px 1px rgba(255,255,255,0.6)' }}>
+            {t.stubDate}
+          </span>
+          <span className="text-[8px] font-sans font-extrabold tracking-widest uppercase block text-[#4a3418] mt-0.5">
+            {t.stubSession}
           </span>
         </div>
       </div>
     </div>
   );
 
-  // Если вызвано для скрытого скриншота — отдаем только тело бланка
+  // Режим скрытого снимка для отправки в Telegram
   if (isCaptureMode) {
     return renderTicketBody();
   }
 
   return (
     <div className="flex flex-col items-center w-full mx-auto select-none">
+      
+      {/* Контейнер с адаптивным масштабом */}
       <div ref={containerRef} className="w-full flex justify-center items-center py-2 overflow-hidden">
         <div style={{ width: `${BASE_WIDTH * scale}px`, height: `${BASE_HEIGHT * scale}px`, position: 'relative', flexShrink: 0 }}>
           <div style={{ width: `${BASE_WIDTH}px`, height: `${BASE_HEIGHT}px`, transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}>
@@ -292,7 +337,8 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
         </div>
       </div>
 
-      <div className="w-full max-w-md flex flex-col gap-2 font-sans text-xs mt-3">
+      {/* Кнопка сохранения и нотификация листа ожидания */}
+      <div className="w-full max-w-md flex flex-col gap-2.5 font-sans text-xs mt-3">
         <button
           type="button"
           onClick={handleDownload}
@@ -309,11 +355,12 @@ export default function VIPTicket({ bookingData, lang = 'ru', isCaptureMode = fa
           )}
         </button>
 
-        <div className="flex items-center justify-center gap-2 text-[10px] text-amber-500/80 bg-amber-950/20 border border-amber-900/30 rounded-lg p-2.5 text-center">
+        <div className="flex items-center justify-center gap-2.5 text-[11px] text-amber-300/80 bg-zinc-950/70 border border-amber-900/30 rounded-xl p-3 text-center leading-relaxed">
           <Users className="w-4 h-4 shrink-0 text-amber-400" />
-          <span>{t.notice}</span>
+          <span>{t.conciergeNote}</span>
         </div>
       </div>
+
     </div>
   );
 }

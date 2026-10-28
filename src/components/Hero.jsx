@@ -57,11 +57,13 @@ export default function Hero({ t }) {
       </h1>
 
       {/* ШТАМП ДАТЫ И ЦЕНЫ */}
-      // В секции бейджа замени блок даты:
-<div className="relative z-20 inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-[#0d0a08]/90 border border-amber-500/50 shadow-[0_12px_35px_rgba(0,0,0,0.85),inset_0_1px_2px_rgba(255,255,255,0.2)] backdrop-blur-md">
-  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0" />
-  <span className="text-[11px] sm:text-xs md:text-sm font-sans tracking-[0.2em] text-amber-200 uppercase font-bold">
-    {t?.datePrice || "Закрытый лист • Сбор группы • Старый Город • $45 / персона"}
+<div className="relative z-20 inline-flex items-center gap-2 sm:gap-3 px-5 sm:px-7 py-2 sm:py-2.5 rounded-full bg-[#0d0a08]/90 border border-amber-500/40 shadow-[0_10px_30px_rgba(0,0,0,0.85),inset_0_1px_2px_rgba(255,255,255,0.15)] backdrop-blur-md">
+  <span className="relative flex h-2 w-2">
+    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+  </span>
+  <span className="text-[10px] sm:text-xs md:text-[11px] font-sans tracking-[0.2em] text-amber-200/90 uppercase font-semibold">
+    {t?.datePrice || "PRIVATE SCREENING • GROUP FORMING • OLD TOWN • $45 / GUEST"}
   </span>
 </div>
 
