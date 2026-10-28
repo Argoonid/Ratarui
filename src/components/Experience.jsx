@@ -29,43 +29,50 @@ export default function Experience({ t }) {
   ];
 
   return (
-    <div className="w-full max-w-5xl xl:max-w-6xl mx-auto py-4 sm:py-8 select-none">
-      <div className="text-center mb-6 sm:mb-10">
-        <span className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-amber-500 font-sans font-bold block">
+    <div className="w-full max-w-5xl xl:max-w-6xl mx-auto h-full max-h-[88dvh] flex flex-col justify-center py-2 sm:py-6 pl-3 pr-8 sm:px-6 select-none overflow-y-auto no-scrollbar">
+      
+      {/* Шапка секции */}
+      <div className="text-center mb-3 sm:mb-8 shrink-0">
+        <span className="text-[9px] sm:text-xs uppercase tracking-[0.3em] sm:tracking-[0.35em] text-amber-500 font-sans font-bold block">
           {t?.expProtocol || "ALL-INCLUSIVE PROTOCOL"}
         </span>
-        <h3 className="text-2xl sm:text-4xl text-amber-100 font-bold mt-1 mb-2 font-serif">
+        <h3 className="text-xl sm:text-3xl md:text-4xl text-amber-100 font-bold mt-0.5 sm:mt-1 mb-1 font-serif leading-tight">
           {t?.expTitle || "Анатомия вечера"}
         </h3>
-        <p className="text-xs sm:text-sm text-zinc-400 font-sans max-w-xl mx-auto">
+        <p className="text-[11px] sm:text-sm text-zinc-400 font-sans max-w-xl mx-auto leading-tight sm:leading-normal">
           {t?.expDesc || "Каждый шаг выверен с точностью часового механизма"}
         </p>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Сетка: 2x2 на мобилках, 4 в ряд на десктопе */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 shrink-0">
         {steps.map(step => (
           <div 
             key={step.id} 
-            className="bg-[#0b0807]/90 border border-amber-900/30 p-5 rounded-2xl relative overflow-hidden group hover:border-amber-600/50 transition-colors shadow-xl"
+            className="bg-[#0b0807]/90 border border-amber-900/30 p-2.5 sm:p-5 rounded-xl sm:rounded-2xl relative overflow-hidden group hover:border-amber-600/50 transition-colors shadow-xl flex flex-col justify-between"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-2xl font-serif font-black text-amber-900/40 group-hover:text-amber-500/25 transition-colors">
-                {step.id}
-              </span>
-              <span className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold rounded-lg font-mono">
-                {step.time}
-              </span>
+            <div>
+              <div className="flex justify-between items-start mb-1.5 sm:mb-4 gap-1">
+                <span className="text-base sm:text-2xl font-serif font-black text-amber-900/40 group-hover:text-amber-500/25 transition-colors">
+                  {step.id}
+                </span>
+                <span className="px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[8px] sm:text-[10px] font-bold rounded sm:rounded-lg font-mono shrink-0 whitespace-nowrap">
+                  {step.time}
+                </span>
+              </div>
+              <h4 className="text-xs sm:text-sm font-bold text-amber-200 mb-1 sm:mb-2 font-serif leading-snug line-clamp-1 sm:line-clamp-none">
+                {step.title}
+              </h4>
+              <p className="text-[10px] sm:text-xs text-zinc-400 leading-snug sm:leading-relaxed font-sans line-clamp-3 sm:line-clamp-none">
+                {step.desc}
+              </p>
             </div>
-            <h4 className="text-sm font-bold text-amber-200 mb-2 font-serif">
-              {step.title}
-            </h4>
-            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-              {step.desc}
-            </p>
-            <div className="absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-amber-500/40" />
+
+            <div className="hidden sm:block absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-amber-500/40" />
           </div>
         ))}
       </div>
+
     </div>
   );
 }
