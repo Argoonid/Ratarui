@@ -37,7 +37,6 @@ export default function Booking({ t, lang = 'ru' }) {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Локализация бейджей и текстов со строгими фолбэками под выбранный язык
   const statusBadgeText = t?.statusBadge || (
     lang === 'it' 
       ? "Lista d'attesa sessione" 
@@ -71,6 +70,14 @@ export default function Booking({ t, lang = 'ru' }) {
     if (!selectedTable) return;
     setStatus('loading');
 
+    // Извлечение реферальной метки из локального хранилища
+    let refSource = null;
+    try {
+      refSource = localStorage.getItem('ratarui_ref');
+    } catch {
+      refSource = null;
+    }
+
     let photoBase64 = null;
     try {
       if (captureRef.current) {
@@ -93,6 +100,7 @@ export default function Booking({ t, lang = 'ru' }) {
       pairing: pairingLabelText,
       audioVote,
       contactMethod,
+      ref: refSource, // <-- передаем метку в воркер
       ...formData,
       photoBase64,
       timestamp: new Date().toISOString()

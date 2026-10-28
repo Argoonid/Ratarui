@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { preloadAndDecodeAssets } from "../utils/preloadAssets";
 
 const TAU = Math.PI * 2;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -11,6 +12,7 @@ const mk = (w, h) => { const c = document.createElement("canvas"); c.width = w; 
 const psi = (x, y, t) =>
   Math.sin(x * 2.3 + t * 0.55 + Math.sin(y * 1.6 - t * 0.3) * 1.4) * Math.cos(y * 2.0 - t * 0.42) +
   0.55 * Math.sin(x * 4.6 - t * 0.8 + 1.3) * Math.sin(y * 3.7 + t * 0.6);
+
 const flow = (x, y, t, o) => {
   const e = 0.01;
   o.x = (psi(x, y + e, t) - psi(x, y - e, t)) / (2 * e);
@@ -33,7 +35,6 @@ function buildSprites() {
     return c;
   };
 
-  // Мягкое тлеющее микро-свечение для единичных угольков
   const emberGlow = mk(64, 64), eg = emberGlow.getContext("2d");
   const egr = eg.createRadialGradient(32, 32, 0, 32, 32, 32);
   egr.addColorStop(0, "rgba(245,158,11,0.85)");
@@ -41,10 +42,12 @@ function buildSprites() {
   egr.addColorStop(1, "rgba(20,10,5,0)");
   eg.fillStyle = egr; eg.fillRect(0, 0, 64, 64);
 
-  // Мягкий рассеянный луч света
   const beam = mk(64, 512), bg = beam.getContext("2d");
   const bh = bg.createLinearGradient(0, 0, 64, 0);
-  for (let i = 0; i <= 10; i++) bh.addColorStop(i / 10, `rgba(180,100,30,${(0.4 * Math.exp(-(((i / 10 - 0.5) / 0.2) ** 2))).toFixed(3)})`);
+  for (let i = 0; i <= 10; i++) {
+    const factor = 0.4 * Math.exp(-Math.pow((i / 10 - 0.5) / 0.2, 2));
+    bh.addColorStop(i / 10, `rgba(180,100,30,${factor.toFixed(3)})`);
+  }
   bg.fillStyle = bh; bg.fillRect(0, 0, 64, 512);
   bg.globalCompositeOperation = "destination-in";
   const bv = bg.createLinearGradient(0, 0, 0, 512);
@@ -59,31 +62,31 @@ function buildSprites() {
   ng.putImageData(id, 0, 0);
 
   return { 
-    smokeDark: createSmokeSprite("12,9,8", 0.40),       // Бархатный угольно-трюфельный дым
-    smokeAmber: createSmokeSprite("130,70,20", 0.22),   // Теплый коньячный отблеск
-    smokeHaze: createSmokeSprite("26,20,18", 0.32),     // Плотная сизая завеса
+    smokeDark: createSmokeSprite("12,9,8", 0.40),
+    smokeAmber: createSmokeSprite("130,70,20", 0.22),
+    smokeHaze: createSmokeSprite("26,20,18", 0.32),
     emberGlow, 
     beam, 
     noise 
   };
 }
 
-/* Отрисовка клоша */
 const domePath = (c, a, H, ry) => {
   c.beginPath();
   for (let i = 0; i <= 72; i++) {
     const th = Math.PI - (i / 72) * Math.PI, co = Math.cos(th), si = Math.sin(th);
-    const x = a * Math.sign(co) * Math.abs(co) ** 0.8, y = -H * Math.abs(si) ** 0.8;
+    const x = a * Math.sign(co) * Math.pow(Math.abs(co), 0.8), y = -H * Math.pow(Math.abs(si), 0.8);
     i ? c.lineTo(x, y) : c.moveTo(x, y);
   }
   c.ellipse(0, 0, a, ry, 0, 0, Math.PI);
   c.closePath();
 };
+
 const arcPath = (c, a, H, s, t0, t1) => {
   c.beginPath();
   for (let i = 0; i <= 28; i++) {
     const th = t0 + ((t1 - t0) * i) / 28, co = Math.cos(th), si = Math.sin(th);
-    const x = a * s * Math.sign(co) * Math.abs(co) ** 0.8, y = -H * s * Math.abs(si) ** 0.8;
+    const x = a * s * Math.sign(co) * Math.pow(Math.abs(co), 0.8), y = -H * s * Math.pow(Math.abs(si), 0.8);
     i ? c.lineTo(x, y) : c.moveTo(x, y);
   }
 };
@@ -104,7 +107,6 @@ function drawCloche(c, a, H, ry, lift, glow) {
   v.addColorStop(0.72, "rgba(25,10,0,0.35)"); v.addColorStop(1, "rgba(0,0,0,0.75)");
   c.fillStyle = v; c.fillRect(-a, -H - 4, a * 2, H + ry + 8);
   
-  // Теплый рассеянный свет из-под кромки
   const ug = c.createRadialGradient(0, ry * 0.5, 0, 0, ry * 0.5, a * 1.15);
   ug.addColorStop(0, `rgba(217,119,6,${0.5 * glow})`); 
   ug.addColorStop(0.4, `rgba(146,64,14,${0.25 * glow})`); 
@@ -115,20 +117,17 @@ function drawCloche(c, a, H, ry, lift, glow) {
   domePath(c, a, H, ry);
   c.lineWidth = Math.max(1, a * 0.006); c.strokeStyle = "rgba(217,119,6,0.22)"; c.stroke();
 
-  // Деликатный блик на куполе
   c.save();
   c.globalCompositeOperation = "lighter"; c.lineCap = "round";
   arcPath(c, a, H, 0.9, 2.62, 1.92);
   c.strokeStyle = "rgba(245,158,11,0.45)"; c.lineWidth = a * 0.011; c.stroke();
   c.restore();
 
-  // Нижняя кромка
   const lip = c.createLinearGradient(-a, 0, a, 0);
   [[0, "#2b1904"], [0.25, "#8c651e"], [0.35, "#c49a3c"], [0.5, "#966c1e"], [0.8, "#57370a"], [1, "#2b1904"]].forEach(([o, col]) => lip.addColorStop(o, col));
   c.beginPath(); c.ellipse(0, 0, a, ry, 0, 0, Math.PI);
   c.lineWidth = a * 0.026; c.strokeStyle = lip; c.stroke();
 
-  // Ручка-шар
   const kr = a * 0.085, ky = -H - kr * 1.25;
   const col = c.createRadialGradient(0, -H, 0, 0, -H, a * 0.13);
   col.addColorStop(0, "#5a360a"); col.addColorStop(1, "#180d05");
@@ -156,7 +155,14 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
   cbRef.current = onComplete;
   durRef.current = duration;
 
-  useEffect(() => { if (done && cbRef.current) cbRef.current(); }, [done]);
+  // Запуск декодирования графики параллельно анимации
+  useEffect(() => {
+    preloadAndDecodeAssets();
+  }, []);
+
+  useEffect(() => { 
+    if (done && cbRef.current) cbRef.current(); 
+  }, [done]);
 
   const handleSkip = (e) => {
     e?.stopPropagation();
@@ -199,7 +205,6 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
     ro && ro.observe(wrap);
     window.addEventListener("resize", resize);
 
-    /* Пулы частиц дыма и мягких тлеющих угольков */
     const smokes = [], embers = [], fv = { x: 0, y: 0 }, P = { x: 0, y: 0 };
     const acc = { smoke: 0, ember: 0 };
     let curGap = 0, curZs = 1;
@@ -258,7 +263,6 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
       const gap = Math.min(lift, H * 0.17);
       const open = smooth(2.5, 4.2, tt);
       
-      // Благородный, медленный dolly-in (максимум в 1.65 раза, без взрывного расширения)
       const e = easeIO(clamp((tt - 3.0) / 3.4));
       const Z = Math.exp(Math.log(1.65) * e);
       const roll = reduce ? 0 : 0.03 * e;
@@ -268,7 +272,6 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
       const gl = smooth(0.04, 0.6, p1) * flick * (1 + 0.3 * open);
       const glc = Math.min(gl, 1.0);
       
-      // Усиленная эмиссия клубящегося дыма
       const emit = smooth(0.1, 0.5, p1) * (1 - smooth(5.8, 7.2, tt));
       curGap = gap; curZs = 1 / Math.pow(Z, 0.6);
 
@@ -280,11 +283,10 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
 
-      // Темный фон строго под цвет сайта
       ctx.fillStyle = "#060505"; 
       ctx.fillRect(0, 0, w, h);
 
-      /* 1 ─ Приглушенное световое пятно на плите */
+      /* 1 ─ Пятно света на плите */
       const R = Wc * 1.8;
       ctx.save(); useCam(c1);
       ctx.save();
@@ -305,7 +307,7 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
       }
       ctx.restore();
 
-      /* 2 ─ Отражение клоша в полумраке плиты */
+      /* 2 ─ Отражение клоша */
       if (m > 0.01 && lift < H * 2.2) {
         ctx.save(); useCam(cams(1.2));
         ctx.beginPath(); ctx.rect(-w, gy, w * 3, h * 3); ctx.clip();
@@ -315,7 +317,7 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
         ctx.restore();
       }
 
-      /* 3 ─ Смягченные лучи сквозь дым */
+      /* 3 ─ Смягченные лучи */
       if (gl > 0.01) {
         ctx.save(); useCam(c1);
         ctx.globalCompositeOperation = "screen";
@@ -333,7 +335,7 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
         ctx.restore();
       }
 
-      /* 4 ─ Тень и теплое свечение под клошем (без слепящего белого пятна) */
+      /* 4 ─ Тень и свечение под клошем */
       ctx.save(); useCam(c1);
       ctx.translate(cx, gy); ctx.scale(1, ry / a);
       if (open < 0.99) {
@@ -362,16 +364,16 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
         ctx.restore();
       }
 
-      /* 6 ─ Генерация клубов дыма */
+      /* 6 ─ Эмиссия дыма */
       const q = L.q;
       acc.smoke += 36 * q * emit * dt; 
       acc.ember += 14 * q * emit * dt;
       while (acc.smoke >= 1) { acc.smoke--; if (smokes.length < 90 * q + 15) spawnSmoke(); }
       while (acc.ember >= 1) { acc.ember--; if (embers.length < 40 * q) spawnEmber(); }
 
-      /* 7 ─ Отрисовка дыма (глубокие темные слои) */
+      /* 7 ─ Отрисовка дыма */
       const cs = cams(1.1), maxSz = Math.max(w, h) * 2.2;
-      ctx.globalCompositeOperation = "source-over"; // Дым плотный, физичный, затеняющий сцену
+      ctx.globalCompositeOperation = "source-over";
       for (let i = smokes.length - 1; i >= 0; i--) {
         const s = smokes[i];
         s.age += dt;
@@ -393,7 +395,7 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
       }
       ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-      /* 8 ─ Редкие мягкие тлеющие угольки вместо агрессивных искр */
+      /* 8 ─ Тлеющие угольки */
       const ce = cams(1.3);
       ctx.globalCompositeOperation = "screen";
       for (let i = embers.length - 1; i >= 0; i--) {
@@ -413,27 +415,24 @@ export default function CinematicPreloader({ children, onComplete, duration = 86
         ctx.drawImage(spr.emberGlow, P.x - hs, P.y - hs, sz, sz);
       }
 
-      /* 9 ─ Глубокая кино-виньетка по краям */
+      /* 9 ─ Виньетка и зерно */
       ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
       ctx.fillStyle = L.vig; ctx.fillRect(0, 0, w, h);
 
-      /* Пленочное зерно */
       ctx.save();
       ctx.globalCompositeOperation = "overlay"; ctx.globalAlpha = 0.12;
       ctx.translate((Math.random() * 160) | 0, (Math.random() * 160) | 0);
       ctx.fillStyle = slatePat; ctx.fillRect(-160, -160, w + 160, h + 160);
       ctx.restore();
 
-      /* 10 ─ ФИНАЛ: Мягкое бесшовное растворение дыма в темный сайт (Smooth Dissolve) */
+      /* 10 ─ Растворение дыма в готовый интерфейс */
       const dissolveStart = 5.8;
       const dissolveDuration = 2.4;
       const fadeProgress = clamp((tt - dissolveStart) / dissolveDuration);
 
       if (fadeProgress > 0) {
         const easeFade = easeIO(fadeProgress);
-        // Плавно уменьшаем непрозрачность оверлея
         wrap.style.opacity = `${1 - easeFade}`;
-        // Сайт плавно встает в свой естественный масштаб
         site.style.transform = `scale(${1.03 - 0.03 * easeFade})`;
       } else {
         wrap.style.opacity = "1";

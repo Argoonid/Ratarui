@@ -15,14 +15,7 @@ export default {
 
       if (!token || !chatId) {
         return new Response(
-          JSON.stringify({ 
-            error: 'Variables TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing in Cloudflare',
-            debug: {
-              availableKeys: Object.keys(env || {}),
-              hasToken: Boolean(token),
-              hasChatId: Boolean(chatId)
-            }
-          }), 
+          JSON.stringify({ error: 'Telegram credentials missing' }), 
           { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -39,12 +32,20 @@ export default {
           pairing, 
           contactMethod, 
           audioVote,
-          photoBase64 
+          photoBase64,
+          ref // <-- Реферальная метка
         } = payload;
 
+        // Контрастный заголовок при наличии партнера
+        const partnerBadge = ref 
+          ? `🎯 <b>ПАРТНЕРСКИЙ ЛИД:</b> <code>#${ref.toUpperCase()}</code>\n` +
+            `🤝 <b>Источник:</b> <i>Канал партнера / QR-код</i>\n` +
+            `────────────────────\n`
+          : '';
+
         const caption = 
-          `🎫 <b>НОВАЯ БРОНЬ: ЛИСТ ОЖИДАНИЯ «РАТАТУЙ»</b>\n` +
-          `━━━━━━━━━━━━━━━━━━━━\n` +
+          `🎫 <b>НОВАЯ БРОНЬ: «РАТАТУЙ»</b>\n` +
+          partnerBadge +
           `🪑 <b>Столик:</b> #${table}\n` +
           `👥 <b>Гости:</b> ${guests} персона(-ы)\n` +
           `💵 <b>Депозит:</b> $${totalPrice}\n` +
@@ -53,9 +54,8 @@ export default {
           `👤 <b>Гость:</b> ${name}\n` +
           `📞 <b>Связь:</b> ${phone} (${contactMethod || 'direct'})\n` +
           `🏨 <b>Отель:</b> ${hotel || 'Не указан'}\n` +
-          `⏳ <i>Формирование группы: уведомить о дате сеанса</i>`;
+          `⏳ <i>Статус: Лист ожидания группы</i>`;
 
-        // Отправка билета фотокарточкой в Telegram
         if (photoBase64 && photoBase64.startsWith('data:image')) {
           const base64Data = photoBase64.split(',')[1];
           const binaryString = atob(base64Data);
@@ -63,7 +63,7 @@ export default {
           for (let i = 0; i < binaryString.length; i++) {
             bytes[i] = binaryString.charCodeAt(i);
           }
-          const photoFile = new File([bytes], `golden-ticket-${table}.png`, { type: 'image/png' });
+          const photoFile = new File([bytes], `ticket-${table}.png`, { type: 'image/png' });
 
           const form = new FormData();
           form.append('chat_id', chatId);
@@ -84,7 +84,6 @@ export default {
           }
         }
 
-        // Резервный текстовый канал
         const textRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

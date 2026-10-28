@@ -25,6 +25,18 @@ export default function App() {
   
   useEffect(() => {
     setLang(detectDefaultLang());
+
+    // Перехват партнерского реферала из URL (?ref=hotel или ?r=hotel)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref') || urlParams.get('r');
+      if (refParam) {
+        const cleanRef = refParam.trim().toLowerCase().slice(0, 40);
+        localStorage.setItem('ratarui_ref', cleanRef);
+      }
+    } catch {
+      // Изоляция ошибок в приватном режиме браузеров
+    }
   }, []);
 
   const t = dict[lang] || dict.en;
@@ -56,7 +68,7 @@ export default function App() {
       roman: 'IV',
       title: lang === 'it' ? 'Menu' : lang === 'en' ? 'Menu' : 'Сет от Реми',
       beamClass: 'top-1/3 left-1/2 -translate-x-1/2 w-full h-96 bg-amber-500/10 blur-[140px]',
-      component: <Menu t={t} />
+      component: <Menu t={t} lang={lang} />
     },
     {
       id: 'rules',
